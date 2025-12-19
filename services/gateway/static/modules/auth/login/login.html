@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - CloudGate API Gateway</title>
+  <link rel="stylesheet" href="../../shared/css/global.css" />
+  <link rel="stylesheet" href="./login.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="header__title">CloudGate API Gateway</h1>
+      <p class="header__subtitle">User Login</p>
+    </header>
+
+    <main class="main-content">
+      <div class="auth-container">
+        <div id="messages-container" class="messages"></div>
+
+        <div id="form-container" class="form-wrapper"></div>
+
+        <div class="token-info" id="token-info" style="display: none">
+          <h3>Access Token</h3>
+          <div class="token-display">
+            <code id="token-value"></code>
+            <button class="btn btn--small" id="copy-token">Copy Token</button>
+          </div>
+        </div>
+
+        <div class="auth-footer">
+          <p>
+            Don't have an account?
+            <a href="../register/" class="link">Register here</a>
+          </p>
+          <p>
+            <a href="../../home/" class="link">Back to home</a>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; <span id="current-year"></span> CloudGate API Gateway. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script type="module" src="../../build/modules/auth/login/login.js"></script>
+</body>
+</html>

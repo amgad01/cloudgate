@@ -1,0 +1,24 @@
+{
+    "name": "cloudgate-ui",
+    "version": "2.0.0",
+    "description": "CloudGate API Gateway - Component-based TypeScript UI",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch",
+        "serve": "python -m http.server 8080",
+        "dev": "npm run watch & npm run serve",
+        "clean": "rm -rf build"
+    },
+    "devDependencies": {
+        "typescript": "^5.3.0"
+    },
+    "keywords": [
+        "api-gateway",
+        "typescript",
+        "component-based",
+        "cloudgate"
+    ],
+    "author": "CloudGate Team",
+    "license": "MIT"
+}

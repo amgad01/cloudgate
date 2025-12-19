@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home - CloudGate API Gateway</title>
+  <link rel="stylesheet" href="../shared/css/global.css" />
+  <link rel="stylesheet" href="./home.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="header__title">CloudGate API Gateway</h1>
+      <p class="header__subtitle">Secure API Access & Management</p>
+    </header>
+
+    <nav class="navbar">
+      <div class="navbar__content">
+        <div id="user-info"></div>
+        <div class="navbar__actions">
+          <button id="logout-btn" class="btn btn--secondary" style="display: none">
+            Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div id="messages-container" class="messages"></div>
+
+      <div class="hero">
+        <h2>Welcome to CloudGate</h2>
+        <p>A modern API gateway for secure, efficient API management</p>
+      </div>
+
+      <section class="features-section">
+        <h2>Features</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🔐</div>
+            <h3>Secure Authentication</h3>
+            <p>JWT-based authentication with token refresh and validation</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>High Performance</h3>
+            <p>Redis caching and optimized request handling</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Monitoring</h3>
+            <p>Real-time metrics with Prometheus and Grafana</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔌</div>
+            <h3>Easy Integration</h3>
+            <p>Simple REST API with comprehensive documentation</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="actions-section">
+        <h2>Get Started</h2>
+        <div class="actions-grid">
+          <div id="auth-actions" style="display: none" class="auth-actions">
+            <a href="../auth/login/" class="btn btn--primary">Login</a>
+            <a href="../auth/register/" class="btn btn--secondary">Register</a>
+          </div>
+
+          <div id="user-actions" style="display: none" class="user-actions">
+            <p class="user-message" id="user-message"></p>
+            <button id="profile-btn" class="btn btn--primary">
+              View Profile
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-section">
+        <h2>API Information</h2>
+        <div class="info-grid">
+          <div class="info-card">
+            <h3>Base URL</h3>
+            <code>http://localhost:8000</code>
+          </div>
+          <div class="info-card">
+            <h3>Auth Endpoint</h3>
+            <code>/api/auth</code>
+          </div>
+          <div class="info-card">
+            <h3>Profile Endpoint</h3>
+            <code>/api/profile</code>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; <span id="current-year"></span> CloudGate API Gateway. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script type="module" src="../build/modules/home/home.js"></script>
+</body>
+</html>

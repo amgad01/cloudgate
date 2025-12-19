@@ -1,0 +1,58 @@
+{
+    "compilerOptions": {
+        // Language and Environment
+        "target": "ES2020",
+        "lib": [
+            "ES2020",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "jsxFactory": "h",
+        "jsxFragmentFactory": "Fragment",
+        // Module Options
+        "module": "ES2020",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        // Emit Settings
+        "declaration": false,
+        "sourceMap": false,
+        "outDir": "./build",
+        "rootDir": "./",
+        "removeComments": true,
+        "importHelpers": true,
+        "preserveConstEnums": true,
+        // Type Checking
+        "strict": true,
+        "exactOptionalPropertyTypes": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "strictPropertyInitialization": true,
+        "noImplicitThis": true,
+        "useUnknownInCatchVariables": true,
+        "alwaysStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
+        "allowUnusedLabels": false,
+        "allowUnreachableCode": false,
+        // Completeness
+        "skipDefaultLibCheck": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": [
+        "shared/**/*.ts",
+        "modules/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "build",
+        "dist",
+        "**/*.test.ts",
+        "**/*.spec.ts"
+    ]
+}
