@@ -1,0 +1,166 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cloudgate-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cloudgate
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cloudgate-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: cloudgate-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cloudgate-network
+
+  # API Gateway
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway
+      target: development
+    container_name: cloudgate-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/cloudgate
+      - REDIS_URL=redis://redis:6379/0
+      - AUTH_SERVICE_URL=http://auth:8001
+      - PROFILE_SERVICE_URL=http://profile:8002
+      - JWT_SECRET_KEY=dev-secret-key-change-in-production
+      - SECRET_KEY=dev-secret-key-change-in-production
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:8000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cloudgate-network
+
+  # Auth Service
+  auth:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.auth
+      target: development
+    container_name: cloudgate-auth
+    ports:
+      - "8001:8001"
+    environment:
+      - APP_ENV=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/cloudgate
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=dev-secret-key-change-in-production
+      - SECRET_KEY=dev-secret-key-change-in-production
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cloudgate-network
+
+  # Profile Service
+  profile:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.profile
+      target: development
+    container_name: cloudgate-profile
+    ports:
+      - "8002:8002"
+    environment:
+      - APP_ENV=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/cloudgate
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=dev-secret-key-change-in-production
+      - SECRET_KEY=dev-secret-key-change-in-production
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cloudgate-network
+
+  # Prometheus (Monitoring)
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: cloudgate-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - cloudgate-network
+
+  # Grafana (Dashboards)
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: cloudgate-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - cloudgate-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  cloudgate-network:
+    driver: bridge

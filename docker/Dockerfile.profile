@@ -1,0 +1,44 @@
+# Profile Service Dockerfile
+FROM python:3.13-alpine AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apk add --no-cache curl
+RUN adduser -D -h /home/appuser -s /sbin/nologin appuser
+WORKDIR /app
+
+FROM base AS builder
+RUN apk add --no-cache --virtual .build-deps \
+    gcc \
+    g++ \
+    musl-dev \
+    libffi-dev \
+    openssl-dev \
+    postgresql-dev
+
+COPY pyproject.toml .
+RUN pip install --no-cache-dir -e . && \
+    pip freeze | grep -v '^-e' > requirements.txt
+RUN apk del --no-cache .build-deps
+
+FROM base AS development
+COPY --from=builder /app/requirements.txt .
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir pytest pytest-asyncio pytest-cov httpx
+USER appuser
+CMD ["python", "-m", "uvicorn", "services.profile.main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+
+FROM base AS production
+COPY --from=builder /app/requirements.txt .
+COPY --chown=appuser:appuser . .
+RUN pip install --no-cache-dir -r requirements.txt
+USER appuser
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8002/api/v1/health || exit 1
+EXPOSE 8002
+CMD ["python", "-m", "uvicorn", "services.profile.main:app", "--host", "0.0.0.0", "--port", "8002"]

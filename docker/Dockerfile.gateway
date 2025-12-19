@@ -1,0 +1,78 @@
+# Base Python image with common dependencies
+FROM python:3.13-alpine AS base
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apk add --no-cache curl
+
+# Create non-root user
+RUN adduser -D -h /home/appuser -s /sbin/nologin appuser
+
+WORKDIR /app
+
+
+# Builder stage for dependencies
+FROM base AS builder
+
+# Install build dependencies (alpine uses apk)
+RUN apk add --no-cache --virtual .build-deps \
+    gcc \
+    g++ \
+    musl-dev \
+    libffi-dev \
+    openssl-dev \
+    postgresql-dev
+
+# Install Python dependencies
+COPY pyproject.toml .
+RUN pip install --no-cache-dir -e . && \
+    pip freeze | grep -v '^-e' > requirements.txt
+
+# Clean up build dependencies
+RUN apk del --no-cache .build-deps
+
+
+# Development image
+FROM base AS development
+
+# Copy requirements from builder
+COPY --from=builder /app/requirements.txt .
+
+# Copy source code
+COPY . .
+
+# Install dependencies from frozen requirements
+RUN pip install --no-cache-dir -r requirements.txt
+
+USER appuser
+
+CMD ["python", "-m", "uvicorn", "services.gateway.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+
+# Production image
+FROM base AS production
+
+# Copy requirements from builder
+COPY --from=builder /app/requirements.txt .
+
+# Copy source code
+COPY --chown=appuser:appuser . .
+
+# Install dependencies from frozen requirements
+RUN pip install --no-cache-dir -r requirements.txt
+
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
+EXPOSE 8000
+
+CMD ["python", "-m", "uvicorn", "services.gateway.main:app", "--host", "0.0.0.0", "--port", "8000"]
