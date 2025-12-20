@@ -8,7 +8,9 @@ from shared.schemas.base import HealthResponse
 
 
 def _determine_overall_status(dependencies: Mapping[str, Any]) -> str:
-    statuses = [dep.get("status") for dep in dependencies.values() if isinstance(dep, dict)]
+    statuses = [
+        dep.get("status") for dep in dependencies.values() if isinstance(dep, dict)
+    ]
     return "healthy" if all(status == "healthy" for status in statuses) else "degraded"
 
 

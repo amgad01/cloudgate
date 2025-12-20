@@ -63,7 +63,9 @@ class RateLimiter:
         if not is_allowed:
             # Remove the request we just added since it's not allowed
             # Keep the set representative of actual processed requests
-            await self.redis.client.zremrangebyscore(key, current_time, current_time + 1)
+            await self.redis.client.zremrangebyscore(
+                key, current_time, current_time + 1
+            )
             rate_limit_info["remaining"] = 0
 
         return is_allowed, rate_limit_info

@@ -28,9 +28,7 @@ async def health_check(
 ) -> HealthResponse:
     redis = get_redis()
 
-    dependency_checks = await gather_dependency_health(
-        {"redis": redis.health_check}
-    )
+    dependency_checks = await gather_dependency_health({"redis": redis.health_check})
     services_health = await proxy_service.health_check_services()
 
     dependencies = {
