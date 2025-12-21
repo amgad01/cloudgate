@@ -2,22 +2,24 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Minimal, production-style API gateway and microservices in Python. FastAPI + PostgreSQL + Redis with Docker Compose for local dev and CDKTF for AWS.
+A minimal, production-ready API gateway and microservices setup built with Python. Uses FastAPI, PostgreSQL, and Redis, with Docker Compose for local development and CDKTF for AWS deployment.
 
 ## Quick Start
 
+Getting up and running is straightforward:
+
 ```bash
-git clone https://github.com/yourusername/cloudgate.git
+git clone https://github.com/amgad01/cloudgate.git
 cd cloudgate
 
 make install
 docker-compose up -d
-
-# Services
-# - Gateway: http://localhost:8000
-# - Auth: http://localhost:8001/docs
-# - Grafana: http://localhost:3000 (admin/admin)
 ```
+
+Once everything's running, you'll have these services available:
+- **Gateway**: http://localhost:8000
+- **Auth Service**: http://localhost:8001/docs (Swagger UI) or /redoc (ReDoc)
+- **Grafana**: http://localhost:3000 (login with admin/admin)
 
 ## Architecture
 
@@ -36,6 +38,15 @@ ALB → API Gateway (rate limit, circuit breaker, logging)
 - **Docker Compose** for local dev
 - **CDKTF** for AWS deployment
 - **Prometheus + Grafana** monitoring
+
+## API Documentation
+
+FastAPI gives you two ways to explore the API docs:
+
+- **Swagger UI** (`/docs`): The interactive version where you can actually test endpoints directly in your browser. Super handy for development.
+- **ReDoc** (`/redoc`): A clean, printable layout that's better for sharing API specs or just reading through everything.
+
+Both are generated automatically from your FastAPI routes and Pydantic models, so they're always up to date.
 
 ## Structure
 
