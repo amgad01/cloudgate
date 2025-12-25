@@ -14,10 +14,8 @@ from shared.middleware.logging import LoggingMiddleware, setup_logging
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
-    # Reuse auth config for shared secrets / DB / Redis
     config = get_profile_config()
 
-    # Validate secrets in production
     if config.app_env == "production":
         if (
             "change-me" in config.secret_key.lower()
@@ -28,10 +26,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
                 "Please set SECRET_KEY and JWT_SECRET_KEY environment variables."
             )
 
-    # Logging
     setup_logging(config)
-
-    # DB + Redis
     db = init_database(config)
     redis = init_redis(config)
 

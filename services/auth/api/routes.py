@@ -71,10 +71,18 @@ async def register(
     "/auth/login",
     response_model=TokenResponse,
     summary="Login",
-    description="Authenticate user and get access and refresh tokens",
+    description=(
+        "Authenticate user and get access and refresh tokens. "
+        "Strict validation is enforced on this endpoint: unknown/extra request body fields "
+        "are rejected and will return HTTP 422 Unprocessable Entity."
+    ),
     responses={
         200: {"description": "Login successful"},
         401: {"description": "Invalid credentials", "model": ErrorResponse},
+        422: {
+            "description": "Validation error (unknown fields rejected)",
+            "model": ErrorResponse,
+        },
     },
 )
 async def login(

@@ -6,7 +6,6 @@ from shared.database.connection import Base
 
 
 class UserProfile(Base):
-
     __tablename__ = "user_profiles"
 
     id = Column(
@@ -30,7 +29,6 @@ class UserProfile(Base):
 
 
 class UserPreferences(Base):
-
     __tablename__ = "user_preferences"
 
     id = Column(

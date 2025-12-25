@@ -6,7 +6,6 @@ from shared.middleware.circuit_breaker import CircuitBreaker, CircuitState
 
 
 class TestCircuitBreaker:
-
     @pytest.fixture
     def circuit_breaker(self) -> CircuitBreaker:
         return CircuitBreaker(

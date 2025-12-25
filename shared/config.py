@@ -76,12 +76,10 @@ class BaseConfig(BaseSettings):
 
     @property
     def is_development(self) -> bool:
-
         return self.app_env.lower() == "development"
 
 
 class GatewayConfig(BaseConfig):
-
     service_name: str = "gateway"
     service_port: int = 8000
 
@@ -97,13 +95,12 @@ class GatewayConfig(BaseConfig):
     circuit_breaker_recovery_timeout: int = 30
 
     # Request Timeouts (in seconds)
-    request_timeout: float = 30.0
-    request_connect_timeout: float = 10.0
-    request_read_timeout: float = 30.0
+    request_timeout: float = 5.0
+    request_connect_timeout: float = 2.0
+    request_read_timeout: float = 5.0
 
 
 class AuthConfig(BaseConfig):
-
     service_name: str = "auth"
     service_port: int = 8001
 
@@ -116,7 +113,6 @@ class AuthConfig(BaseConfig):
 
 
 class ProfileConfig(BaseConfig):
-
     service_name: str = "profile"
     service_port: int = 8002
 

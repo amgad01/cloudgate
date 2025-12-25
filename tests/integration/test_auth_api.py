@@ -3,7 +3,6 @@ from httpx import AsyncClient
 
 
 class TestAuthAPI:
-
     @pytest.mark.asyncio
     async def test_health_check(self, auth_client: AsyncClient) -> None:
         response = await auth_client.get("/api/v1/health")

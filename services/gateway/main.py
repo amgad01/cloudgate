@@ -13,13 +13,13 @@ from shared.config import get_gateway_config
 from shared.database.redis import init_redis
 from shared.middleware.circuit_breaker import CircuitBreaker, CircuitBreakerMiddleware
 from shared.middleware.logging import LoggingMiddleware, setup_logging
+from shared.middleware.rate_limiter import RateLimiter, RateLimitMiddleware
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     config = get_gateway_config()
 
-    # Validate secrets in production
     if config.app_env == "production":
         if (
             "change-me" in config.secret_key.lower()
@@ -38,13 +38,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 
     yield
 
-    # Cleanup
     await app.state.proxy_service.close()
     await redis.close()
 
 
 def create_app() -> FastAPI:
     config = get_gateway_config()
+
+    redis = init_redis(config)
 
     # OpenAPI tags metadata for better documentation organization
     tags_metadata = [
@@ -138,7 +139,6 @@ def create_app() -> FastAPI:
         },
     )
 
-    # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors_origins,
@@ -147,7 +147,8 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # ─── Middleware Stack (Applied in Reverse Order) ───────────────────────────
+    # Middleware applied in reverse order: logging wraps everything,
+    # circuit breaker fails fast when backends are unhealthy ───────────────────────────
     # Why this ordering:
     #   1. LoggingMiddleware wraps all requests → captures full lifecycle metrics.
     #   2. CircuitBreakerMiddleware fails fast when backends are unhealthy → prevents
@@ -159,6 +160,18 @@ def create_app() -> FastAPI:
 
     # Add logging middleware
     app.add_middleware(LoggingMiddleware, service_name="gateway")
+
+    # Add rate limiter middleware
+    rate_limiter = RateLimiter(
+        redis=redis,
+        requests_per_window=config.rate_limit_requests,
+        window_seconds=config.rate_limit_window_seconds,
+    )
+    app.add_middleware(
+        RateLimitMiddleware,
+        rate_limiter=rate_limiter,
+        exclude_paths=["/health", "/metrics", "/docs", "/redoc", "/openapi.json"],
+    )
 
     # Add circuit breaker middleware
     circuit_breaker = CircuitBreaker(
@@ -172,21 +185,17 @@ def create_app() -> FastAPI:
         exclude_paths=["/health", "/metrics", "/docs", "/redoc", "/openapi.json"],
     )
 
-    # Mount Prometheus metrics
     metrics_app = make_asgi_app()
     app.mount("/metrics", metrics_app)
 
-    # Mount static files for UI
     import os
 
     static_dir = os.path.join(os.path.dirname(__file__), "static")
     if os.path.exists(static_dir):
         app.mount("/ui", StaticFiles(directory=static_dir, html=True), name="static")
 
-    # Include routers
     app.include_router(router, prefix="/api/v1")
 
-    # Add root redirect to homepage
     @app.get("/", response_class=HTMLResponse, include_in_schema=False)
     async def root() -> str:
         import pathlib

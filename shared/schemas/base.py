@@ -5,7 +5,6 @@ from pydantic import BaseModel, ConfigDict
 
 
 class BaseSchema(BaseModel):
-
     model_config = ConfigDict(
         from_attributes=True,
         populate_by_name=True,
@@ -15,7 +14,6 @@ class BaseSchema(BaseModel):
 
 
 class TimestampMixin(BaseModel):
-
     created_at: datetime
     updated_at: datetime | None = None
 
@@ -24,7 +22,6 @@ T = TypeVar("T")
 
 
 class PaginatedResponse[T](BaseSchema):
-
     items: list[T]
     total: int
     page: int
@@ -50,7 +47,6 @@ class PaginatedResponse[T](BaseSchema):
 
 
 class ErrorResponse(BaseSchema):
-
     error: str
     detail: str | dict[str, Any] | list[Any] | None = None
     code: str | None = None
@@ -74,7 +70,6 @@ class ErrorResponse(BaseSchema):
 
 
 class HealthResponse(BaseSchema):
-
     status: str
     service: str
     version: str
@@ -98,7 +93,6 @@ class HealthResponse(BaseSchema):
 
 
 class MessageResponse(BaseSchema):
-
     message: str
     success: bool = True
 

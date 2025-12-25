@@ -48,6 +48,8 @@ FastAPI gives you two ways to explore the API docs:
 
 Both are generated automatically from your FastAPI routes and Pydantic models, so they're always up to date.
 
+Note: The Auth login endpoint enforces strict payload validation — unknown/extra request fields are rejected with HTTP 422.
+
 ## Structure
 
 ```

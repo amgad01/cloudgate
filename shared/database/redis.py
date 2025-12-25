@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Awaitable
+from typing import Any, cast
 
 from redis.asyncio import ConnectionPool, Redis
 
@@ -31,49 +32,49 @@ class RedisManager:
         return self._client
 
     async def get(self, key: str) -> str | None:
-        return await self.client.get(key)
+        return cast(str | None, await self.client.get(key))
 
     async def set(self, key: str, value: str, expire: int | None = None) -> bool:
         return bool(await self.client.set(key, value, ex=expire))
 
     async def delete(self, key: str) -> int:
-        return await self.client.delete(key)
+        return int(await cast(Awaitable[int], self.client.delete(key)))
 
     async def exists(self, key: str) -> bool:
-        return await self.client.exists(key) > 0
+        return (await cast(Awaitable[int], self.client.exists(key))) > 0
 
     async def incr(self, key: str) -> int:
-        return await self.client.incr(key)
+        return int(await cast(Awaitable[int], self.client.incr(key)))
 
     async def expire(self, key: str, seconds: int) -> bool:
-        return await self.client.expire(key, seconds)
+        return bool(await self.client.expire(key, seconds))
 
     async def ttl(self, key: str) -> int:
-        return await self.client.ttl(key)
+        return int(await cast(Awaitable[int], self.client.ttl(key)))
 
     async def hset(self, name: str, key: str, value: str) -> int:
-        return await self.client.hset(name, key, value)
+        return int(await cast(Awaitable[int], self.client.hset(name, key, value)))
 
     async def hget(self, name: str, key: str) -> str | None:
-        return await self.client.hget(name, key)
+        return await cast(Awaitable[str | None], self.client.hget(name, key))
 
     async def hgetall(self, name: str) -> dict[str, str]:
-        return await self.client.hgetall(name)
+        return await cast(Awaitable[dict[str, str]], self.client.hgetall(name))
 
     async def hdel(self, name: str, *keys: str) -> int:
-        return await self.client.hdel(name, *keys)
+        return int(await cast(Awaitable[int], self.client.hdel(name, *keys)))
 
     async def lpush(self, key: str, *values: str) -> int:
-        return await self.client.lpush(key, *values)
+        return int(await cast(Awaitable[int], self.client.lpush(key, *values)))
 
     async def rpush(self, key: str, *values: str) -> int:
-        return await self.client.rpush(key, *values)
+        return int(await cast(Awaitable[int], self.client.rpush(key, *values)))
 
     async def lrange(self, key: str, start: int, end: int) -> list[str]:
-        return await self.client.lrange(key, start, end)
+        return await cast(Awaitable[list[str]], self.client.lrange(key, start, end))
 
     async def publish(self, channel: str, message: str) -> int:
-        return await self.client.publish(channel, message)
+        return int(await self.client.publish(channel, message))
 
     async def close(self) -> None:
         if self._client:
@@ -85,7 +86,7 @@ class RedisManager:
 
     async def health_check(self) -> dict[str, Any]:
         try:
-            await self.client.ping()
+            await cast(Awaitable[bool], self.client.ping())
             return {"status": "healthy", "redis": "connected"}
         except Exception as e:
             return {"status": "unhealthy", "redis": "disconnected", "error": str(e)}

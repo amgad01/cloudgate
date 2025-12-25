@@ -3,13 +3,12 @@ from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import EmailStr, Field, field_validator
+from pydantic import ConfigDict, EmailStr, Field, field_validator
 
 from shared.schemas.base import BaseSchema
 
 
 class UserCreate(BaseSchema):
-
     email: EmailStr = Field(..., description="User email address")
     password: Annotated[str, Field(min_length=8, max_length=128)] = Field(
         ..., description="User password"
@@ -47,22 +46,21 @@ class UserCreate(BaseSchema):
 
 
 class UserLogin(BaseSchema):
-
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., description="User password")
 
-    model_config = {
-        "json_schema_extra": {
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
             "example": {
                 "email": "user@example.com",
                 "password": "SecurePass123!",
             }
-        }
-    }
+        },
+    )
 
 
 class TokenPayload(BaseSchema):
-
     sub: str = Field(..., description="Subject (user ID)")
     email: str = Field(..., description="User email")
     exp: datetime = Field(..., description="Expiration time")
@@ -72,7 +70,6 @@ class TokenPayload(BaseSchema):
 
 
 class TokenResponse(BaseSchema):
-
     access_token: str = Field(..., description="JWT access token")
     refresh_token: str = Field(..., description="JWT refresh token")
     token_type: str = Field(default="bearer", description="Token type")
@@ -91,12 +88,10 @@ class TokenResponse(BaseSchema):
 
 
 class RefreshTokenRequest(BaseSchema):
-
     refresh_token: str = Field(..., description="Refresh token")
 
 
 class UserResponse(BaseSchema):
-
     id: UUID = Field(..., description="User ID")
     email: EmailStr = Field(..., description="User email")
     first_name: str = Field(..., description="User first name")
@@ -123,12 +118,10 @@ class UserResponse(BaseSchema):
 
 
 class PasswordResetRequest(BaseSchema):
-
     email: EmailStr = Field(..., description="User email address")
 
 
 class PasswordResetConfirm(BaseSchema):
-
     token: str = Field(..., description="Password reset token")
     new_password: Annotated[str, Field(min_length=8, max_length=128)] = Field(
         ..., description="New password"
@@ -149,7 +142,6 @@ class PasswordResetConfirm(BaseSchema):
 
 
 class ChangePasswordRequest(BaseSchema):
-
     current_password: str = Field(..., description="Current password")
     new_password: Annotated[str, Field(min_length=8, max_length=128)] = Field(
         ..., description="New password"

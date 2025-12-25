@@ -23,15 +23,15 @@ def _truncate_for_bcrypt(value: str) -> str:
 def hash_password(password: str) -> str:
     pw = _truncate_for_bcrypt(password)
     try:
-        return _PRIMARY_CTX.hash(pw)
+        return str(_PRIMARY_CTX.hash(pw))
     except MissingBackendError:
         # Fall back to pure-Python pbkdf2
-        return _pbkdf2_only_ctx().hash(pw)
+        return str(_pbkdf2_only_ctx().hash(pw))
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     pw = _truncate_for_bcrypt(plain_password)
     try:
-        return _PRIMARY_CTX.verify(pw, hashed_password)
+        return bool(_PRIMARY_CTX.verify(pw, hashed_password))
     except MissingBackendError:
-        return _pbkdf2_only_ctx().verify(pw, hashed_password)
+        return bool(_pbkdf2_only_ctx().verify(pw, hashed_password))

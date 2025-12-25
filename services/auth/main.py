@@ -17,7 +17,6 @@ from shared.middleware.logging import LoggingMiddleware, setup_logging
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     config = get_auth_config()
 
-    # Validate secrets in production
     if config.app_env == "production":
         if (
             "change-me" in config.secret_key.lower()
@@ -28,18 +27,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
                 "Please set SECRET_KEY and JWT_SECRET_KEY environment variables."
             )
 
-    # Initialize logging
     setup_logging(config)
-
-    # Initialize database
     db = init_database(config)
-
-    # Initialize Redis
     redis = init_redis(config)
 
     yield
 
-    # Cleanup
     await db.close()
     await redis.close()
 
@@ -117,7 +110,6 @@ def create_app() -> FastAPI:
         },
     )
 
-    # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors_origins,
@@ -126,17 +118,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Add logging middleware
     app.add_middleware(LoggingMiddleware, service_name="auth")
 
-    # Mount Prometheus metrics
     metrics_app = make_asgi_app()
     app.mount("/metrics", metrics_app)
 
-    # Include routers
     app.include_router(router, prefix="/api/v1")
 
-    # Add root documentation endpoint
     @app.get("/", response_class=HTMLResponse, include_in_schema=False)
     async def root() -> str:
         return """

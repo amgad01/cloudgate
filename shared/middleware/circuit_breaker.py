@@ -143,12 +143,10 @@ class CircuitBreaker:
 
 
 class CircuitBreakerOpenError(Exception):
-
     pass
 
 
 class CircuitBreakerMiddleware(BaseHTTPMiddleware):
-
     def __init__(
         self,
         app: Any,
@@ -198,7 +196,6 @@ class CircuitBreakerMiddleware(BaseHTTPMiddleware):
 
 
 class CircuitBreakerRegistry:
-
     def __init__(self) -> None:
         self._breakers: dict[str, CircuitBreaker] = {}
         self._lock = asyncio.Lock()

@@ -88,7 +88,6 @@ class RateLimiter:
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-
     def __init__(
         self,
         app: Any,

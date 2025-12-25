@@ -3,10 +3,34 @@ import sys
 from typing import Any
 
 import structlog
-from fastapi import Request, Response
+from fastapi import HTTPException, Request, Response
+from prometheus_client import Counter, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from shared.config import BaseConfig
+
+# Define Prometheus metrics
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total number of HTTP requests",
+    ["method", "endpoint", "status_code"],
+)
+
+REQUEST_DURATION = Histogram(
+    "http_request_duration_seconds",
+    "HTTP request duration in seconds",
+    ["method", "endpoint"],
+)
+
+EXCLUDED_METRIC_PATHS = {
+    "/metrics",
+    "/metrics/",
+    "/health",
+    "/api/v1/health",
+    "/docs",
+    "/redoc",
+    "/openapi.json",
+}
 
 
 def setup_logging(config: BaseConfig) -> None:
@@ -68,7 +92,6 @@ def get_logger(name: str | None = None) -> Any:
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
-
     def __init__(self, app: Any, service_name: str = "api") -> None:
         super().__init__(app)
         self.service_name = service_name
@@ -117,6 +140,18 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 duration_ms=duration_ms,
             )
 
+            if request.url.path not in EXCLUDED_METRIC_PATHS:
+                REQUEST_COUNT.labels(
+                    method=request.method,
+                    endpoint=request.url.path,
+                    status_code=str(response.status_code),
+                ).inc()
+
+                REQUEST_DURATION.labels(
+                    method=request.method,
+                    endpoint=request.url.path,
+                ).observe(duration_ms / 1000)
+
             # Add request ID to response headers
             response.headers["X-Request-ID"] = request_id
             response.headers["X-Response-Time"] = f"{duration_ms}ms"
@@ -126,6 +161,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
+            status_code = e.status_code if isinstance(e, HTTPException) else 500
+
             self.logger.error(
                 "Request failed",
                 method=request.method,
@@ -134,4 +171,17 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 error=str(e),
                 error_type=type(e).__name__,
             )
+
+            if request.url.path not in EXCLUDED_METRIC_PATHS:
+                REQUEST_COUNT.labels(
+                    method=request.method,
+                    endpoint=request.url.path,
+                    status_code=str(status_code),
+                ).inc()
+
+                REQUEST_DURATION.labels(
+                    method=request.method,
+                    endpoint=request.url.path,
+                ).observe(duration_ms / 1000)
+
             raise

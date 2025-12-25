@@ -5,7 +5,6 @@ from shared.schemas.auth import UserCreate
 
 
 class TestPasswordService:
-
     def test_hash_password(self) -> None:
         password = "SecurePassword123!"
         hashed = hash_password(password)
@@ -33,7 +32,6 @@ class TestPasswordService:
 
 
 class TestUserCreateSchema:
-
     def test_valid_user(self) -> None:
         user = UserCreate(
             email="test@example.com",

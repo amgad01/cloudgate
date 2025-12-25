@@ -64,6 +64,8 @@ FastAPI automatically generates two types of documentation:
 
 Both pull from the same source - your FastAPI route definitions and Pydantic models - so they're always in sync.
 
+Note: The Auth login endpoint uses strict validation — unknown/extra request fields result in HTTP 422 Unprocessable Entity.
+
 ## Setup
 
 Getting your local environment ready:
